@@ -22,6 +22,7 @@ namespace Proyecto_FUXA.Data
         public DbSet<MaquinaMaterial> MaquinasMateriales { get; set; }
         public DbSet<EmpleadoMaquina> EmpleadoMaquinas { get; set; }
         public DbSet<TipoOperacion> TiposOperaciones { get; set; }
+        public DbSet<TipoOperacionMaterial> TiposOperacionesMateriales { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -40,6 +41,7 @@ namespace Proyecto_FUXA.Data
             modelBuilder.Entity<MaquinaMaterial>().ToTable("MaquinasMateriales");
             modelBuilder.Entity<EmpleadoMaquina>().ToTable("MaquinasEmpleados");
             modelBuilder.Entity<TipoOperacion>().ToTable("TiposOperaciones");
+            modelBuilder.Entity<TipoOperacionMaterial>().ToTable("TiposOperacionesMateriales");
 
             modelBuilder.Entity<ImputacionOperario>()
                 .HasOne(i => i.Operacion)
@@ -84,6 +86,21 @@ namespace Proyecto_FUXA.Data
                 .HasForeignKey(o => o.IdMaquina)
                 .IsRequired(false) 
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<TipoOperacionMaterial>()
+                .HasKey(tm => new { tm.IdTipoOperacion, tm.IdMaterial });
+
+            modelBuilder.Entity<TipoOperacionMaterial>()
+                .HasOne(tm => tm.TipoOperacion)
+                .WithMany() 
+                .HasForeignKey(tm => tm.IdTipoOperacion)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TipoOperacionMaterial>()
+                .HasOne(tm => tm.Material)
+                .WithMany()
+                .HasForeignKey(tm => tm.IdMaterial)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

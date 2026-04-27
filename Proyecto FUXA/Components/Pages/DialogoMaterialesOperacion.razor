@@ -48,6 +48,32 @@
                         </Template>
                     </RadzenDropDown>
 
+                    @if (idMaterialSeleccionado != 0)
+                    {
+                        var matSeleccionado = materialesDisponibles.FirstOrDefault(m => m.Id == idMaterialSeleccionado);
+                        if (matSeleccionado != null)
+                        {
+                            <div class="rz-mb-4" style="background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 8px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <RadzenIcon Icon="inventory" Style="color: #64748B; font-size: 1.5rem;" />
+                                    <div>
+                                        <RadzenText TextStyle="TextStyle.Caption" Style="color: #64748B; margin: 0; font-weight: bold; letter-spacing: 0.5px;">STOCK ACTUAL</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.H6" Style="@($"margin: 0; font-weight: 800; color: {(matSeleccionado.Stock <= matSeleccionado.StockMinimo ? "#DC2626" : "#1D9E75")}")">
+                                            @matSeleccionado.Stock
+                                        </RadzenText>
+                                    </div>
+                                </div>
+            
+                                <div style="text-align: right; border-left: 2px solid #E2E8F0; padding-left: 20px;">
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color: #94A3B8; margin: 0; font-weight: bold; letter-spacing: 0.5px;">STOCK MÍNIMO</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Subtitle1" Style="margin: 0; font-weight: bold; color: #64748B;">
+                                        @matSeleccionado.StockMinimo
+                                    </RadzenText>
+                                </div>
+                            </div>
+                        }
+                    }
+
                     <div class="step-header rz-mt-4">
                         <RadzenIcon Icon="scale" Style="font-size: 1.5rem; color: #1F4E79; margin-right: 10px;" />
                         <RadzenText TextStyle="TextStyle.Subtitle1" class="step-title">Cantidad consumida</RadzenText>
@@ -373,25 +399,26 @@
 
     private async Task CargarDatos()
     {
-        materialesDisponibles = await ImputacionService.ObtenerMaterialesPorMaquinaAsync(IdMaquina);
+        materialesDisponibles = await ImputacionService.ObtenerMaterialesPermitidosAsync(IdOperacion);
 
         consumosActuales = await ImputacionService.ObtenerConsumosPorOperacionAsync(IdOperacion);
     }
 
     private async Task GuardarMaterial()
     {
+        bool restaCorrecta = await ImputacionService.RestadoStockAsync(idMaterialSeleccionado, cantidadConsumida);
+        if (!restaCorrecta)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "La cantidad imputada es superior al stock");
+            return;
+        }
+
         bool exito = await ImputacionService.RegistrarConsumoMaterialAsync(IdOperacion, idMaterialSeleccionado, cantidadConsumida, IdEmpleado, esMerma);
 
         if (exito)
         {
-            bool restaCorrecta = await ImputacionService.RestadoStockAsync(idMaterialSeleccionado, cantidadConsumida);
             bool stockMinimoBool = await ImputacionService.StockMinimoAsync(idMaterialSeleccionado, cantidadConsumida);
 
-            if (!restaCorrecta)
-            {
-                NotificationService.Notify(NotificationSeverity.Error, "Error", "La cantidad imputada es superior al stock");
-                return;
-            }
             if (stockMinimoBool)
             {
                 NotificationService.Notify(NotificationSeverity.Warning, "Aviso", "El material ha alcanzado el stock mínimo");

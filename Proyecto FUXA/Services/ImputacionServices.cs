@@ -651,7 +651,7 @@ public class ImputacionService
                     return false;
                 }
 
-                material.Stock -= cantidadConsumida;
+                //material.Stock -= cantidadConsumida;
 
                 await _context.SaveChangesAsync();
                 return true;
@@ -715,9 +715,17 @@ public class ImputacionService
 
     public async Task<bool> RegistrarConsumoMaterialAsync(int idOperacion, int idMaterial, decimal cantidad, int idEmpleado, bool esMerma)
     {
+
+
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
+            var material = await _context.Materiales.FindAsync(idMaterial);
+            if (material != null && material.Stock > cantidad)
+            {
+                material.Stock -= cantidad;
+            }
+
             var nuevoConsumo = new ImputacionMaterial
             {
                 IdOperacion = idOperacion,
@@ -729,12 +737,6 @@ public class ImputacionService
             };
 
             _context.ImputacionMateriales.Add(nuevoConsumo);
-
-            var material = await _context.Materiales.FindAsync(idMaterial);
-            if (material != null)
-            {
-                material.Stock -= cantidad;
-            }
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -893,6 +895,34 @@ public class ImputacionService
         {
             Console.WriteLine($"Error al liberar máquina: {ex.Message}");
             return false;
+        }
+    }
+
+    //para obtener los materiales por tipoOperacion
+    public async Task<List<Material>> ObtenerMaterialesPermitidosAsync(int idOperacionDiaria)
+    {
+        try
+        {
+            var operacion = await _context.OperacionesOrden.FindAsync(idOperacionDiaria);
+            if (operacion == null) return new List<Material>();
+
+            var tipoOperacion = await _context.TiposOperaciones
+                .FirstOrDefaultAsync(t => t.Nombre == operacion.CodigoOperacion);
+
+            if (tipoOperacion == null) return new List<Material>();
+
+            var materialesPermitidos = await _context.TiposOperacionesMateriales
+                .Include(tm => tm.Material)
+                .Where(tm => tm.IdTipoOperacion == tipoOperacion.Id)
+                .Select(tm => tm.Material)
+                .ToListAsync();
+
+            return materialesPermitidos;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener materiales permitidos: {ex.Message}");
+            return new List<Material>();
         }
     }
 }
