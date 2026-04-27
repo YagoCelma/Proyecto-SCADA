@@ -50,23 +50,7 @@
 
                     <RadzenDataGridColumn TItem="OperacionResumenDTO" Property="NombreOrden" Title="ORDEN" Width="140px" />
 
-                    <RadzenDataGridColumn TItem="OperacionResumenDTO" Property="Producto" Title="PRODUCTO / DESCRIPCIÓN" Width="200px" />
-
-                    <RadzenDataGridColumn TItem="OperacionResumenDTO" Property="NombreMaquina" Title="MÁQUINA" Width="150px" />
-
-                    <RadzenDataGridColumn TItem="OperacionResumenDTO" Property="CiclosObjetivo" Title="OBJETIVO" Width="100px" TextAlign="TextAlign.Center" Filterable="false" />
-
-                    <RadzenDataGridColumn TItem="OperacionResumenDTO" Property="PiezasFabricadas" Title="FABRICADAS" Width="110px" TextAlign="TextAlign.Center" Filterable="false">
-                        <Template Context="o">
-                            <span style="color: #1F4E79; font-weight: bold;">@o.PiezasFabricadas</span>
-                        </Template>
-                    </RadzenDataGridColumn>
-
-                    <RadzenDataGridColumn TItem="OperacionResumenDTO" Property="PiezasRotas" Title="ROTAS" Width="100px" TextAlign="TextAlign.Center" Filterable="false">
-                        <Template Context="o">
-                            <span style="color: #DC2626; font-weight: bold;">@o.PiezasRotas</span>
-                        </Template>
-                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="OperacionResumenDTO" Property="Producto" Title="PRODUCTO / DESCRIPCIÓN" Width="600px" />
 
                     <RadzenDataGridColumn TItem="OperacionResumenDTO" Property="Estado" Title="ESTADO" Width="130px" TextAlign="TextAlign.Center" SortOrder="SortOrder.Ascending">
                         <FilterTemplate>
