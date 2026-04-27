@@ -10,7 +10,7 @@
 <div class="terminal-container">
     <div class="topbar">
         <div class="topbar-left">
-            <div class="machine-id">SELECCIÓN DE OPERARIO</div>
+            <div class="machine-id">SELECCIÓN DE PERSONAL</div>
             <div class="machine-name">Planta Principal</div>
         </div>
         <div class="topbar-center">
@@ -20,7 +20,7 @@
 
     <div class="step-content">
         <RadzenText TextStyle="TextStyle.H5" class="instruction" Style="text-align: center; margin-bottom: 2rem;">
-            Seleccione el operario
+            Seleccione su perfil de operario
         </RadzenText>
 
         @if (listaOperarios == null)
@@ -39,7 +39,7 @@
                 @foreach (var o in listaOperarios)
                 {
                     <div class="operario-card" @onclick="() => IrATerminal(o.Id)">
-                        <RadzenIcon Icon="settings_suggest" Style="font-size: 3rem; color: #1F4E79; margin-bottom: 10px;" />
+                        <RadzenIcon Icon="person" Style="font-size: 3rem; color: #1F4E79; margin-bottom: 10px;" />
                         <div class="name">@o.Nombre @o.Apellidos </div>
                         <div class="surname">@(o.CodigoEmpleado)</div>
                     </div>
@@ -50,87 +50,18 @@
 </div>
 
 <style>
-    .terminal-container {
-        background: #F0F4F8;
-        min-height: 100vh;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    }
-
-    .topbar {
-        background: #1F4E79;
-        color: white;
-        padding: 12px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #185FA5;
-    }
-
-    .machine-id {
-        color: #BDD7EE;
-        font-size: 13px;
-        font-weight: 500;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }
-
-    .machine-name {
-        font-size: 20px;
-        font-weight: 500;
-        color: white;
-    }
-
-    .clock-big {
-        font-size: 28px;
-        font-weight: 500;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .step-content {
-        padding: 2rem;
-        max-width: 1000px;
-        margin: auto;
-    }
-
-    .instruction {
-        color: #1F4E79;
-        font-weight: bold;
-    }
-
-    .operario-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1.5rem;
-    }
-
-    .operario-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        text-align: center;
-        cursor: pointer;
-        border: 1px solid #D5E3EF;
-        transition: all 0.2s;
-    }
-
-        .operario-card:hover {
-            border-color: #2E75B6;
-            transform: translateY(-5px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            background-color: #f8fafc;
-        }
-
-    .name {
-        font-weight: bold;
-        color: #1A2E3F;
-        font-size: 1.2rem;
-    }
-
-    .surname {
-        color: #6B8FAD;
-        font-size: 0.9rem;
-        margin-top: 5px;
-    }
+    .terminal-container { background: #F0F4F8; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; }
+    .topbar { background: #1F4E79; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #185FA5; }
+    .machine-id { color: #BDD7EE; font-size: 13px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+    .machine-name { font-size: 20px; font-weight: 500; color: white; }
+    .clock-big { font-size: 28px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .step-content { padding: 2rem; max-width: 1000px; margin: auto; }
+    .instruction { color: #1F4E79; font-weight: bold; }
+    .operario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+    .operario-card { background: white; padding: 1.5rem; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid #D5E3EF; transition: all 0.2s; }
+    .operario-card:hover { border-color: #2E75B6; transform: translateY(-5px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); background-color: #f8fafc; }
+    .name { font-weight: bold; color: #1A2E3F; font-size: 1.2rem; }
+    .surname { color: #6B8FAD; font-size: 0.9rem; margin-top: 5px; }
 </style>
 
 @code {
@@ -138,13 +69,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // cargamos la lista completa de máquinas
         listaOperarios = await ServicioEmpleado.GetAllAsync();
     }
 
-    private void IrATerminal(int id)
+    private void IrATerminal(int idOperario)
     {
-        // redirigimos al terminal enviando ID de la máquina
-        NavManager.NavigateTo($"/terminal-maquina/{id}");
+        NavManager.NavigateTo($"/terminal-operario/{idOperario}");
     }
 }
