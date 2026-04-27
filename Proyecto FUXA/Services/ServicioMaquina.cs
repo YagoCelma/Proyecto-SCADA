@@ -22,6 +22,17 @@ namespace Proyecto_FUXA.Services
                 .ThenInclude(me => me.Empleado)
                 .ToListAsync();
         }
+
+        public async Task<List<Maquina>> GetAllMaquinasDisponiblesAsync()
+        {
+            return await _db.Maquinas
+                .AsNoTracking()
+                .Include(m => m.Seccion)
+                .Include(m => m.MaquinasEmpleados)
+                .ThenInclude(me => me.Empleado)
+                .Where(m => m.EstadoActualId != 4)
+                .ToListAsync();
+        }
         public async Task<List<Maquina>> GetAllBySeccionAsync()
         {
             return await _db.Maquinas

@@ -4,6 +4,8 @@
 @using Proyecto_FUXA.Services
 @using Radzen
 @using Radzen.Blazor
+@* @using System.Timers
+@implements IDisposable *@
 @using Proyecto_FUXA.Models
 @using static Proyecto_FUXA.Services.ImputacionService
 
@@ -14,6 +16,7 @@
 @inject NavigationManager NavManager
 @inject DialogService DialogService
 @inject ImputacionService ImputacionService
+
 
 
 @if (maquinasFiltradas == null)
@@ -255,12 +258,36 @@ else
     private List<Maquina> maquinasFiltradas = new();
     private List<Maquina> maquinasDB = new();
     private List<OperacionResumenDTO> listaOperacionesActivas = new();
+    private Timer timerRefresh;
 
     protected override async Task OnInitializedAsync()
     {
         await CargarMaquinasDesdeSQL();
         listaOperacionesActivas = await ImputacionService.ObtenerOperacionesActivasAsync();
+
+        // timerRefresh = new Timer(5000);
+        // timerRefresh.Elapsed += async (sender, e) => await ActualizarPantallaSola();
+        // timerRefresh.AutoReset = true;
+        // timerRefresh.Enabled = true;
     }
+    // private async Task ActualizarPantallaSola()
+    // {
+    //     await InvokeAsync(async () =>
+    //     {
+    //         await CargarMaquinasDesdeSQL();
+    //         listaOperacionesActivas = await ImputacionService.ObtenerOperacionesActivasAsync();
+    //         StateHasChanged();
+    //     });
+    // }
+
+    // public void Dispose()
+    // {
+    //     if (timerRefresh != null)
+    //     {
+    //         timerRefresh.Stop();
+    //         timerRefresh.Dispose();
+    //     }
+    // }
 
     private async Task CargarMaquinasDesdeSQL()
     {

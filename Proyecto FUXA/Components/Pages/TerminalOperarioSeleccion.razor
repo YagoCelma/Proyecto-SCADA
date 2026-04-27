@@ -4,13 +4,13 @@
 @using Radzen
 @using Radzen.Blazor
 
-@inject ServicioMaquina ServicioMaquina
+@inject ServicioEmpleado ServicioEmpleado
 @inject NavigationManager NavManager
 
 <div class="terminal-container">
     <div class="topbar">
         <div class="topbar-left">
-            <div class="machine-id">SELECCIÓN DE PUESTO</div>
+            <div class="machine-id">SELECCIÓN DE OPERARIO</div>
             <div class="machine-name">Planta Principal</div>
         </div>
         <div class="topbar-center">
@@ -20,28 +20,28 @@
 
     <div class="step-content">
         <RadzenText TextStyle="TextStyle.H5" class="instruction" Style="text-align: center; margin-bottom: 2rem;">
-            Seleccione la máquina a la que desea conectarse
+            Seleccione el operario
         </RadzenText>
 
-        @if (listaMaquinas == null)
+        @if (listaOperarios == null)
         {
             <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
         }
-        else if (!listaMaquinas.Any())
+        else if (!listaOperarios.Any())
         {
             <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat">
-                No hay máquinas registradas en el sistema.
+                No hay operarios registrados en el sistema.
             </RadzenAlert>
         }
         else
         {
             <div class="operario-grid">
-                @foreach (var m in listaMaquinas)
+                @foreach (var o in listaOperarios)
                 {
-                    <div class="operario-card" @onclick="() => IrATerminal(m.Id)">
+                    <div class="operario-card" @onclick="() => IrATerminal(o.Id)">
                         <RadzenIcon Icon="settings_suggest" Style="font-size: 3rem; color: #1F4E79; margin-bottom: 10px;" />
-                        <div class="name">@m.Nombre</div>
-                        <div class="surname">@(m.Seccion?.Nombre ?? "General")</div>
+                        <div class="name">@o.Nombre @o.Apellidos </div>
+                        <div class="surname">@(o.CodigoEmpleado)</div>
                     </div>
                 }
             </div>
@@ -134,17 +134,17 @@
 </style>
 
 @code {
-    private List<Maquina> listaMaquinas;
+    private List<Empleado> listaOperarios;
 
     protected override async Task OnInitializedAsync()
     {
         // cargamos la lista completa de máquinas
-        listaMaquinas = await ServicioMaquina.GetAllAsync();
+        listaOperarios = await ServicioEmpleado.GetAllAsync();
     }
 
     private void IrATerminal(int id)
     {
         // redirigimos al terminal enviando ID de la máquina
-        NavManager.NavigateTo($"/terminal-operario/{id}");
+        NavManager.NavigateTo($"/terminal-maquina/{id}");
     }
 }

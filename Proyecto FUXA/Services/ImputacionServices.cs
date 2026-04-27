@@ -832,4 +832,67 @@ public class ImputacionService
         .OrderByDescending(o => o.Preferencia)
         .ToListAsync();
     }
+
+    //Para que se cambien los estados de la mquina en la pantalla de  "Maquinas"
+    public async Task<bool> VincularMaquinaAOperacionAsync(int idOperacion, int idMaquina)
+    {
+        try
+        {
+            var operacion = await _context.OperacionesOrden.FindAsync(idOperacion);
+            if (operacion != null)
+            {
+                //la ponemos en activa
+                operacion.Estado = "Activa";
+                operacion.IdMaquina = idMaquina;
+
+                var maquina = await _context.Maquinas.FindAsync(idMaquina);
+                if (maquina != null)
+                {
+                    maquina.EstadoActualId = 1;
+                }
+
+                var ordenMadre = await _context.Ordenes.FindAsync(operacion.IdOrden);
+                if (ordenMadre != null && ordenMadre.Estado == "Pendiente")
+                {
+                    ordenMadre.Estado = "Activa";
+                }
+
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al vincular máquina: {ex.Message}");
+            return false;
+        }
+    }
+
+    //para cambiar el estado de la maquina una vez guardamos el turno
+    public async Task<bool> LiberarMaquinaYOperacionAsync(int idOperacion, int idMaquina)
+    {
+        try
+        {
+            var operacion = await _context.OperacionesOrden.FindAsync(idOperacion);
+            if (operacion != null && operacion.Estado == "Activa")
+            {
+                operacion.IdMaquina = null;
+            }
+
+            var maquina = await _context.Maquinas.FindAsync(idMaquina);
+            if (maquina != null && maquina.EstadoActualId == 1) 
+            {
+                maquina.EstadoActualId = 3;
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al liberar máquina: {ex.Message}");
+            return false;
+        }
+    }
 }

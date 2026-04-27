@@ -10,7 +10,7 @@
 <div class="fuxa-enterprise-container">
     <RadzenStack Gap="1.5rem">
 
-        @* CABECERA *@
+        @* cabecera *@
         <RadzenRow AlignItems="AlignItems.Center">
             <RadzenColumn Size="12" SizeMD="6">
                 <RadzenStack Gap="0">
@@ -38,7 +38,7 @@
             </RadzenColumn>
         </RadzenRow>
 
-        @* TABLA (GRID) *@
+        @* tabla *@
         <div class="ent-grid-wrapper">
             <RadzenDataGrid AllowFiltering="true" AllowPaging="true" PageSize="10" AllowSorting="true"
                             Data="@escaparateOrdenes" TItem="Orden" EmptyText="No hay órdenes creadas."
@@ -77,8 +77,8 @@
                         <Template Context="o">
                             @* AQUÍ SE RESPETAN TUS COLORES ORIGINALES *@
                             <RadzenBadge BadgeStyle="@(o.Estado == "Activa" ? BadgeStyle.Success :
-                                                                                                                            o.Estado == "Finalizado" ? BadgeStyle.Danger :
-                                                                                                                            BadgeStyle.Info)"
+                                                       o.Estado == "Finalizado" ? BadgeStyle.Danger :
+                                                       BadgeStyle.Info)"
                                          Text="@o.Estado.ToUpper()"
                                          class="ent-badge" />
                         </Template>

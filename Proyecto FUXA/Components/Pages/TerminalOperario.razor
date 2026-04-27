@@ -1,4 +1,4 @@
-﻿@page "/terminal-operario/{IdMaquina:int}"
+﻿@page "/terminal-maquina/{IdMaquina:int}"
 @using Proyecto_FUXA.Models
 @using Proyecto_FUXA.Services
 @using System.Timers
@@ -20,9 +20,6 @@
             <div class="machine-id">MÁQUINA @IdMaquina</div>
             <div class="machine-name">
                 @(maquinaActual?.Nombre ?? "Cargando...")
-                <span style="font-size: 0.9rem; color: #7BB3D4; margin-left: 10px;">
-                    (Prioridad: @(preferenciaActual?.ToString() ?? "--"))
-                </span>
             </div>
         </div>
         <div class="topbar-center">
@@ -272,7 +269,7 @@
                 </div>
 
                 @* Piezas fabricadas y rotas *@
-                <RadzenRow Gap="1rem">
+                @* <RadzenRow Gap="1rem">
                     <RadzenColumn Size="12" SizeMD="6">
                         <div class="pcs-card-fuxa" style="background-color: #BDFFC6 ">
                             <RadzenText TextStyle="TextStyle.H5"><b>Piezas fabricadas</b></RadzenText>
@@ -294,10 +291,10 @@
                             </RadzenStack>
                         </div>
                     </RadzenColumn>
-                </RadzenRow>
+                </RadzenRow> *@
 
                 @* Ciclos Reales *@
-                <RadzenRow Gap="1rem" class="rz-mb-4 rz-mt-2">
+                @* <RadzenRow Gap="1rem" class="rz-mb-4 rz-mt-2">
                     <RadzenColumn Size="12">
                         <div class="pcs-card-fuxa" style="background-color: #E6F2FF; border: 2px solid #7BB3D4;">
                             <RadzenText TextStyle="TextStyle.H5" Style="color: #1F4E79;"><b>Ciclos reales</b></RadzenText>
@@ -308,7 +305,7 @@
                             </RadzenStack>
                         </div>
                     </RadzenColumn>
-                </RadzenRow>
+                </RadzenRow> *@
 
                 <RadzenRow class="rz-mb-4">
                     <RadzenColumn Size="12">
@@ -576,7 +573,6 @@
         try
         {
             maquinaActual = await ServicioMaquina.GetByIdAsync(IdMaquina);
-            //preferenciaActual = await ServicioMaquina.PreferenciaPorMaquinaId(IdMaquina);
 
             listaEmpleados = await ServicioEmpleado.ObtenerOperariosPorMaquinaAsync(IdMaquina);
             listaOperaciones = await ImputacionService.ObtenerOperacionesActivas();
@@ -651,10 +647,11 @@
         estaPausado = false;
         horaInicioProceso = DateTime.Now;
 
-        if (orden.Estado == "Pendiente")
+        if (orden.Estado == "Pendiente" || orden.Estado == "Activa")
         {
             await ImputacionService.IniciarFichajeAsync(orden.Id, operarioSeleccionado.Id);
         }
+        await ImputacionService.VincularMaquinaAOperacionAsync(ordenSeleccionada.Id, IdMaquina);
 
         pasoActual = 4;
         StateHasChanged();
@@ -676,6 +673,7 @@
 
         if (exito)
         {
+            await ImputacionService.LiberarMaquinaYOperacionAsync(ordenSeleccionada.Id, IdMaquina);
             if (operacionCerrada)
             {
                 NotificationService.Notify(NotificationSeverity.Warning, "Aviso", "Turno guardado. (Nota: La operación ya había sido finalizada por otro compañero).", duration: 5000);
