@@ -53,7 +53,11 @@
                                            class="ent-input w-100" />
                         </FilterTemplate>
                         <Template Context="o">
-                            <strong>@o.CodigoOrden</strong>
+                            <a href="javascript:void(0)"
+                                   @onclick="() => AbrirInfoOrden(o)"
+                                   class="ent-link">
+                                <strong>@o.CodigoOrden</strong>
+                            </a>
                         </Template>
                     </RadzenDataGridColumn>
                         
@@ -96,7 +100,7 @@
 </div>
 
 <style>
-    /* Fondo general */
+    /* fondo */
     .fuxa-enterprise-container {
         background-color: #FAFAFA;
         min-height: 100vh;
@@ -104,7 +108,7 @@
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    /* Títulos */
+    /* titulos */
     .ent-title {
         color: #1A2E3F;
         font-weight: 800 !important;
@@ -120,7 +124,6 @@
         margin-top: 5px;
     }
 
-    /* Contenedor de la tabla con borde estricto */
     .ent-grid-wrapper {
         border: 1px solid #D5E3EF;
         background: white;
@@ -128,12 +131,12 @@
         overflow: hidden;
     }
 
-    /* ---- ESTILOS DE LA TABLA (DATAGRID) ---- */
+    /* tabla */
     .ent-datagrid {
         border: none !important;
     }
 
-    /* Cabecera oscura corporativa */
+    /* cabecera */
     .ent-datagrid .rz-datagrid-header-cell {
         background-color: #1A2E3F !important;
         color: #FFFFFF !important;
@@ -145,12 +148,10 @@
         text-transform: uppercase;
     }
 
-    /* Iconos de ordenación en la cabecera */
     .ent-datagrid .rz-datagrid-header-cell .rz-sortable-column-icon {
         color: #7BB3D4 !important;
     }
 
-    /* Filas de la tabla */
     .ent-datagrid .rz-datagrid-row td {
         border-bottom: 1px solid #EEEEEE !important;
         padding: 12px 15px !important;
@@ -158,17 +159,14 @@
         font-size: 0.95rem;
     }
 
-    /* Filas alternas (Zebra stripes) para leer mejor los datos */
     .ent-datagrid .rz-datagrid-row:nth-child(even) > td {
         background-color: #F8F9FA !important;
     }
 
-    /* Efecto hover al pasar el ratón */
     .ent-datagrid .rz-datagrid-row:hover td {
         background-color: #E6F2FF !important;
     }
 
-    /* ---- ETIQUETAS Y BOTONES ---- */
     .ent-badge {
         border-radius: 4px !important;
         padding: 6px 12px !important;
@@ -187,7 +185,6 @@
         box-shadow: 0 0 0 2px rgba(31,78,121,0.2) !important;
     }
 
-    /* Botones superiores */
     .ent-btn-solid {
         background-color: #1F4E79 !important;
         border-radius: 4px !important;
@@ -211,7 +208,6 @@
         background-color: #F0F4F8 !important;
     }
 
-    /* Botón de editar de la tabla */
     .ent-action-btn {
         color: #1F4E79 !important;
         background: transparent !important;
@@ -220,6 +216,17 @@
     .ent-action-btn:hover {
         background: #E6F2FF !important;
     }
+
+    .ent-link {
+        color: #1F4E79 !important;
+        text-decoration: none !important;
+        transition: all 0.2s;
+    }
+
+        .ent-link:hover {
+            color: #0F2A4A !important;
+            text-decoration: underline !important;
+        }
 </style>
 
 @code {
@@ -297,5 +304,19 @@
         })
         .ThenByDescending(orden => orden.FechaInicio);
         escaparateOrdenes = resultadoTemporal.ToList();
+    }
+
+    private async Task AbrirInfoOrden(Orden orden)
+    {
+        var parametros = new Dictionary<string, object>
+        {
+            { "OrdenInfo", orden }
+        };
+
+        await DialogService.OpenAsync<DialogoInfoOrden>(
+            $"Detalles de Orden: {orden.CodigoOrden}",
+            parametros,
+            new DialogOptions() { Width = "750px", Height = "700px", Resizable = true, Draggable = true }
+        );
     }
 }

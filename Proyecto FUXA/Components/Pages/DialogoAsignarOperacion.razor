@@ -87,7 +87,7 @@
                 CiclosObjetivo = modelo.CiclosObjetivo,
                 PiezasFabricadas = 0,
                 Estado = "Activa",
-                FechaCreacion = DateTime.Now
+                FechaInicio = DateTime.Now
             };
 
             var exito = await ServicioMaquina.InsertarOperacion(operacion);

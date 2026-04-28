@@ -1,0 +1,191 @@
+﻿@using Proyecto_FUXA.Models
+@using Proyecto_FUXA.Services
+@using Radzen
+@using Radzen.Blazor
+@inject ImputacionService ImputacionService
+@inject DialogService DialogService
+
+<div class="fuxa-info-container">
+    @if (OrdenInfo == null)
+    {
+        <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
+    else
+    {
+        @* cabecera *@
+        <RadzenCard class="rz-mb-4 rz-border-radius-2" Style="background: #1A2E3F; color: white;">
+            <RadzenRow AlignItems="AlignItems.Center">
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenStack Gap="0">
+                        <RadzenText TextStyle="TextStyle.Overline" Style="color: #7BB3D4; font-weight: bold;">FICHA TÉCNICA DE ORDEN</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H4" Style="margin: 0; font-weight: 800; color:white">@OrdenInfo.CodigoOrden</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Subtitle1" Style="color: #E2E8F0;">@OrdenInfo.Producto</RadzenText>
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="4" Style="text-align: right;">
+                    <RadzenBadge BadgeStyle="@(OrdenInfo.Estado == "Activa" ? BadgeStyle.Success :
+                                                                                                    OrdenInfo.Estado == "Finalizado" ? BadgeStyle.Danger : BadgeStyle.Info)"
+                                 Text="@OrdenInfo.Estado.ToUpper()"
+                                 Style="padding: 10px 20px; font-size: 1rem;" />
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+
+        @* barra progreso *@
+        <div class="rz-mb-6">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <RadzenText TextStyle="TextStyle.Subtitle2" Style="font-weight: bold; color: #475569;">PROGRESO DE FABRICACIÓN</RadzenText>
+                <RadzenText TextStyle="TextStyle.Subtitle2" Style="font-weight: bold; color: #1F4E79;">@porcentajeCompletado%</RadzenText>
+            </div>
+            <RadzenProgressBar Value="@porcentajeCompletado" ShowValue="false" Style="height: 12px;" ProgressBarStyle="ProgressBarStyle.Primary" />
+        </div>
+
+        @* razdenTable *@
+        <RadzenTabs RenderMode="TabRenderMode.Client">
+            <Tabs>
+                @* pestaña operaciones *@
+                <RadzenTabsItem Text="Hoja de Ruta" Icon="assignment">
+                    <RadzenDataGrid Data="@listaOperaciones" TItem="OperacionesOrden" class="rz-mt-2" AllowPaging="true" PageSize="6">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="OperacionesOrden" Property="Preferencia" Title="Preferencia" Width="100px" TextAlign="TextAlign.Center" />
+                            <RadzenDataGridColumn TItem="OperacionesOrden" Property="CodigoOperacion" Title="Operación" />
+                            <RadzenDataGridColumn TItem="OperacionesOrden" Property="Estado" Title="Estado" Width="130px" TextAlign="TextAlign.Center">
+                                <Template Context="op">
+                                    <RadzenBadge BadgeStyle="@(op.Estado == "Activa" ? BadgeStyle.Success : op.Estado == "Finalizado" ? BadgeStyle.Danger : BadgeStyle.Info)"
+                                                 Text="@op.Estado" IsPill="true" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                            @* tiempo teorico *@
+                            <RadzenDataGridColumn TItem="OperacionesOrden" Title="Tiempo teórico" Width="130px" TextAlign="TextAlign.Center">
+                                <Template Context="op">
+                                    @if (op.DetalleOperacion != null)
+                                    {
+                                        <span style="font-weight: bold; color: #475569;">
+                                            @{
+                                                var tiempoTeorico = TimeSpan.FromMinutes(op.DetalleOperacion.TiempoTeorico);
+                                            }
+                                            @((int)tiempoTeorico.TotalHours)h @tiempoTeorico.Minutes.ToString("D2")m
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #A0AEC0;">---</span>
+                                    }
+                                </Template>
+                            </RadzenDataGridColumn>
+
+                            @* tiempo real *@
+                            <RadzenDataGridColumn TItem="OperacionesOrden" Title="Tiempo real" Width="140px" TextAlign="TextAlign.Center">
+                                <Template Context="op">
+                                    @if (op.FechaFin.HasValue && op.FechaInicio.HasValue)
+                                    {
+                                        var tiempoReal = op.FechaFin.Value - op.FechaInicio.Value;
+                                        <span style="font-weight: bold; color: #1F4E79;">
+                                            @((int)tiempoReal.TotalHours)h @tiempoReal.Minutes.ToString("D2")m
+                                        </span>
+                                    }
+                                    else if (op.Estado == "Activa" && op.FechaInicio.HasValue)
+                                    {
+                                        var tiempoParcial = DateTime.Now - op.FechaInicio.Value;
+                                        <span style="color: #00CC58; font-weight: bold;">
+                                            @((int)tiempoParcial.TotalHours)h @tiempoParcial.Minutes.ToString("D2")m
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #A0AEC0;">---</span>
+                                    }
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </RadzenTabsItem>
+
+                @* pestaña materiales *@
+                <RadzenTabsItem Text="Materiales Consumidos" Icon="inventory_2">
+                    <RadzenDataGrid Data="@listaMateriales" TItem="ImputacionMaterial" class="rz-mt-2" AllowPaging="true" PageSize="6">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="ImputacionMaterial" Property="Material.Nombre" Title="Material" />
+                            <RadzenDataGridColumn TItem="ImputacionMaterial" Property="Cantidad" Title="Cant." Width="100px" TextAlign="TextAlign.Center">
+                                <Template Context="m">
+                                    <span style="font-weight: bold;">@m.Cantidad</span>
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="ImputacionMaterial" Title="Registrado por">
+                                <Template Context="e">
+                                    <span>@e.Empleado.Nombre @e.Empleado.Apellidos</span>
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="ImputacionMaterial" Property="FechaRegistro" Title="Fecha" FormatString="{0:dd/MM HH:mm}" Width="130px" />
+                        </Columns>
+                    </RadzenDataGrid>
+                </RadzenTabsItem>
+
+                @* pestaña tiempos totales *@
+                <RadzenTabsItem Text="Tiempos" Icon="timer">
+                    <div class="rz-p-4">
+                        <RadzenRow>
+                            <RadzenColumn Size="6">
+                                <RadzenStack Gap="0.5rem">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Fecha Inicio:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1"><b>@OrdenInfo.FechaInicio.ToString("dd/MM/yyyy HH:mm")</b></RadzenText>
+                                </RadzenStack>
+                            </RadzenColumn>
+                            <RadzenColumn Size="6">
+                                <RadzenStack Gap="0.5rem">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Fecha Fin Estimada/Real:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1"><b>@(OrdenInfo.FechaFin?.ToString("dd/MM/yyyy HH:mm") ?? "En curso...")</b></RadzenText>
+                                </RadzenStack>
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </div>
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+    }
+</div>
+
+<div class="rz-mt-6" style="text-align: right;">
+    <RadzenButton Text="Cerrar Detalles" Click="() => DialogService.Close()" ButtonStyle="ButtonStyle.Light" />
+</div>
+
+<style>
+    .fuxa-info-container {
+        padding: 10px;
+    }
+
+    .rz-tabview-panels {
+        border: 1px solid #E2E8F0 !important;
+        border-top: none !important;
+    }
+</style>
+
+@code {
+    [Parameter] public Orden OrdenInfo { get; set; }
+
+    private List<OperacionesOrden> listaOperaciones = new();
+    private List<ImputacionMaterial> listaMateriales = new();
+    private int porcentajeCompletado = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (OrdenInfo != null)
+        {
+            await CargarDetalles();
+        }
+    }
+
+    private async Task CargarDetalles()
+    {
+        listaOperaciones = await ImputacionService.ObtenerOperacionesOrdenAsync(OrdenInfo.Id);
+
+        listaMateriales = await ImputacionService.ObtenerMaterialesPorOrdenAsync(OrdenInfo.Id);
+
+        if (listaOperaciones.Any())
+        {
+            int total = listaOperaciones.Count;
+            int finalizadas = listaOperaciones.Count(o => o.Estado == "Finalizado");
+            porcentajeCompletado = (int)((decimal)finalizadas / total * 100);
+        }
+    }
+}

@@ -245,8 +245,8 @@
         listaCompleta = datos.OrderBy(o => o.Estado switch
         {
             "Activa" => 1,
-            "Pendiente" => 2,
-            "Finalizado" => 3,
+            "Finalizado" => 2,
+            "Pendiente" => 3,
             _ => 4
         })
         .ThenByDescending(o => o.FechaInicio)

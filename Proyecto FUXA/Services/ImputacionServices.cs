@@ -125,7 +125,7 @@ public class ImputacionService
                 IdMaquina = idMaquina,
                 CiclosObjetivo = ciclos,
                 Estado = "Activa",
-                FechaCreacion = DateTime.Now
+                FechaInicio = DateTime.Now
             };
 
             _context.OperacionesOrden.Add(nuevaOp);
@@ -156,7 +156,7 @@ public class ImputacionService
         public int PiezasRotas { get; set; } = 0;
         public string Estado { get; set; } = "";
         public int EstadoMaquinaId { get; set; }
-        public DateTime FechaInicio { get; set; }
+        public DateTime? FechaInicio { get; set; }
         public DateTime? FechaFin { get; set; }
     }
 
@@ -182,7 +182,7 @@ public class ImputacionService
             PiezasFabricadas = 0,
             PiezasRotas = 0,
             Estado = "Activa",
-            FechaCreacion = DateTime.Now,
+            FechaInicio = DateTime.Now,
             IdSeccion = 1,
             IdOperacionMaestra = 1
         };
@@ -236,7 +236,7 @@ public class ImputacionService
                     PiezasFabricadas = o.PiezasFabricadas,
                     PiezasRotas = o.PiezasRotas,
                     Estado = o.Estado,
-                    FechaInicio = o.FechaCreacion,
+                    FechaInicio = o.FechaInicio,
                     FechaFin = o.FechaFin
                 })
                 .OrderByDescending(o => o.FechaInicio)
@@ -274,7 +274,7 @@ public class ImputacionService
                     PiezasFabricadas = o.PiezasFabricadas,
                     PiezasRotas = o.PiezasRotas,
                     Estado = o.Estado,
-                    FechaInicio = o.FechaCreacion,
+                    FechaInicio = o.FechaInicio,
                     FechaFin = o.FechaFin
                 }).ToListAsync();
         }
@@ -816,7 +816,7 @@ public class ImputacionService
                 IdOperacionMaestra = op.Id,
                 Preferencia = op.Preferencia,
                 Estado = "Pendiente",
-                FechaCreacion = DateTime.Now,
+                FechaInicio = DateTime.Now,
                 CodigoOperacion = op.Nombre,
                 CiclosObjetivo = 0,
                 PiezasRotas = 0,
@@ -936,6 +936,26 @@ public class ImputacionService
             .Include(im => im.Empleado)
             .Where(im => im.IdOperacion == idOperacion)
             .OrderByDescending(im => im.FechaRegistro)
+            .ToListAsync();
+    }
+
+    //todos los materiales consumidos de una orden
+    public async Task<List<ImputacionMaterial>> ObtenerMaterialesPorOrdenAsync(int idOrden)
+    {
+        return await _context.ImputacionMateriales
+            .Include(im => im.Material)
+            .Include(im => im.Empleado)
+            .Where(im => im.OperacionesOrden.IdOrden == idOrden)
+            .OrderByDescending(im => im.FechaRegistro)
+            .ToListAsync();
+    }
+
+    public async Task<List<OperacionesOrden>> ObtenerOperacionesOrdenAsync(int idOrden)
+    {
+        return await _context.OperacionesOrden
+            .Include(o => o.DetalleOperacion)
+            .Where(o => o.IdOrden == idOrden)
+            .OrderByDescending(o => o.Preferencia)
             .ToListAsync();
     }
 }

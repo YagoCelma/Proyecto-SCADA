@@ -14,7 +14,7 @@ namespace Proyecto_FUXA.Models
         public int CiclosObjetivo { get; set; }
         public int PiezasFabricadas { get; set; }
         public int PiezasRotas { get; set; }
-        public DateTime FechaCreacion { get; set; }
+        public DateTime? FechaInicio { get; set; }
         public DateTime? FechaFin { get; set; }
         public string Estado { get; set; } = "Pendiente";
 
@@ -28,6 +28,6 @@ namespace Proyecto_FUXA.Models
         public virtual Maquina? Maquina { get; set; }
 
         [ForeignKey("IdOperacionMaestra")]
-        public virtual Operacion? DetalleOperacion { get; set; }
+        public virtual TipoOperacion? DetalleOperacion { get; set; }
     }
 }
