@@ -52,7 +52,7 @@
 
                     <RadzenDataGridColumn TItem="OperacionResumenDTO" Property="Producto" Title="PRODUCTO / DESCRIPCIÓN" Width="600px" />
 
-                    <RadzenDataGridColumn TItem="OperacionResumenDTO" Property="Estado" Title="ESTADO" Width="130px" TextAlign="TextAlign.Center" SortOrder="SortOrder.Ascending">
+                    <RadzenDataGridColumn TItem="OperacionResumenDTO" Property="Estado" Title="ESTADO" Width="130px" TextAlign="TextAlign.Center">
                         <FilterTemplate>
                             <RadzenDropDown @bind-Value="estadoSeleccionado"
                                             Data="@opcionesEstado"
@@ -242,7 +242,15 @@
     {
         var datos = await ImputacionService.ObtenerTodasLasOperacionesResumenAsync();
 
-        listaCompleta = datos.OrderBy(o => o.Estado == "Activa" ? 0 : 1).ThenByDescending(o => o.FechaInicio).ToList();
+        listaCompleta = datos.OrderBy(o => o.Estado switch
+        {
+            "Activa" => 1,
+            "Pendiente" => 2,
+            "Finalizado" => 3,
+            _ => 4
+        })
+        .ThenByDescending(o => o.FechaInicio)
+        .ToList();
 
         AplicarFiltros();
     }
@@ -297,7 +305,7 @@
         await DialogService.OpenAsync<DialogoInfoOperacion>(
             $"Detalles de Operación: {operacion.CodigoOperacion}",
             parametros,
-            new DialogOptions() { Width = "625px", Height = "700px", Resizable = true, Draggable = true }
+            new DialogOptions() { Width = "750px", Height = "700px", Resizable = true, Draggable = true }
         );
     }
 

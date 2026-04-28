@@ -928,4 +928,14 @@ public class ImputacionService
             return new List<Material>();
         }
     }
+
+    public async Task <List<ImputacionMaterial>> ObtenerImputacionMaterialesAsync(int idOperacion)
+    {
+        return await _context.ImputacionMateriales
+            .Include(im => im.Material)
+            .Include(im => im.Empleado)
+            .Where(im => im.IdOperacion == idOperacion)
+            .OrderByDescending(im => im.FechaRegistro)
+            .ToListAsync();
+    }
 }
