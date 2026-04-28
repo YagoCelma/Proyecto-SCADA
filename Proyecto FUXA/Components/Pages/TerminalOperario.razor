@@ -184,13 +184,35 @@
         {
             <RadzenStack Gap="1.5rem">
                 <RadzenCard Variant="Variant.Flat" Style="background: #fff; border: 1px solid #D5E3EF;" class="rz-mb-4">
+                    <RadzenText TextStyle="TextStyle.H5" Style="color: #6B8FAD; margin-bottom: 1rem; display: block; letter-spacing: 1px; font-weight: bold;">
+                        DATOS DE LA OPERACIÓN
+                    </RadzenText>
+                        
                     <RadzenRow AlignItems="AlignItems.Center">
-                        <RadzenColumn Size="12" SizeMD="4">
+                        <RadzenColumn Size="12" SizeMD="3">
                             <RadzenStack Gap="0">
-                                <RadzenText TextStyle="TextStyle.Overline" Style="color: #6B8FAD;">IDENTIFICACIÓN</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1"><b>Orden:</b> @ordenSeleccionada.NombreOrden</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1"><b>Tarea:</b> @ordenSeleccionada.CodigoOperacion</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1"><b>Operario:</b> @operarioSeleccionado?.Nombre</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" Style="color:#94A3B8; font-weight: bold;">ORDEN DE FABRICACIÓN</RadzenText> 
+                                <RadzenText TextStyle="TextStyle.H5" Style="font-weight: 800; color: #1A2E3F; margin: 0;">
+                                    @ordenSeleccionada.NombreOrden
+                                </RadzenText>
+                            </RadzenStack>
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12" SizeMD="3" Style="text-align: center; border-left: 2px solid #F1F5F9; border-right: 2px solid #F1F5F9;">
+                            <RadzenStack Gap="0" AlignItems="AlignItems.Center">
+                                <RadzenText TextStyle="TextStyle.Body2" Style="color: #94A3B8; font-weight: bold;">OPERACIÓN</RadzenText>
+                                <RadzenText TextStyle="TextStyle.H5" Style="font-weight: 800; color: #1F4E79; margin: 0;">
+                                    @ordenSeleccionada.CodigoOperacion
+                                </RadzenText>
+                            </RadzenStack>
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12" SizeMD="6" Style="text-align: center; border-left: 2px solid #F1F5F9; border-right: 2px solid #F1F5F9;">
+                            <RadzenStack Gap="0" AlignItems="AlignItems.Center">
+                                <RadzenText TextStyle="TextStyle.Body2" Style="color: #94A3B8; font-weight: bold;">OPERARIO</RadzenText>
+                                <RadzenText TextStyle="TextStyle.H5" Style="font-weight: 800; color: #1F4E79; margin: 0;">
+                                    @operarioSeleccionado.Nombre @operarioSeleccionado.Apellidos
+                                </RadzenText>
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
@@ -479,13 +501,13 @@
 
             if (operacionCerrada)
             {
-                NotificationService.Notify(NotificationSeverity.Warning, "Información", "Tus piezas se han guardado, pero la operación ya había sido finalizada.", duration: 5000);
+                NotificationService.Notify(NotificationSeverity.Warning, "Información", "El tiempo se ha imputado, pero la operación ya había sido finalizada.", duration: 5000);
             }
             else
             {
                 // Como no hay máquina, le pasamos el ID Dummy y una sección nula o cero
                 await ImputacionService.CerrarOperacionAsync(ordenSeleccionada.Id, idMaquinaNula, 0);
-                NotificationService.Notify(NotificationSeverity.Success, "Completado", "Operación cerrada y piezas guardadas.");
+                NotificationService.Notify(NotificationSeverity.Success, "Completado", "Operación finalizada");
             }
 
             isDisposed = true;

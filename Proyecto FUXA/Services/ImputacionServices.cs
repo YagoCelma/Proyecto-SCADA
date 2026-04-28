@@ -464,7 +464,7 @@ public class ImputacionService
         return $"{prefijo}-{(contador + 1):D3}";
     }
 
-    public async Task<bool> ImputarTrabajoDesdeTerminalAsync(int idOperacion, int idMaquina, int idEmpleado, DateTime inicio, DateTime fin, int pHechasTurno, int pRotasTurno)
+    public async Task<bool> ImputarTrabajoDesdeTerminalAsync(int idOperacion, int idMaquina, int idEmpleado, DateTime inicio, DateTime fin, int piezasHechasTurno, int piezasRotasTurno)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
@@ -475,15 +475,18 @@ public class ImputacionService
             var opActiva = await _context.OperacionesOrden.FindAsync(idOperacion);
             if (opActiva != null)
             {
-                opActiva.PiezasFabricadas += pHechasTurno; 
-                opActiva.PiezasRotas += pRotasTurno;     
+                opActiva.PiezasFabricadas += piezasHechasTurno; 
+                opActiva.PiezasRotas += piezasRotasTurno;
+
+                if (opActiva.IdMaquina == 0) opActiva.IdMaquina = null;
+                if (opActiva.IdSeccion == 0) opActiva.IdSeccion = null;
             }
 
             // Sumamos a los ciclos de la máquina
             var dbMaquina = await _context.Maquinas.FindAsync(idMaquina);
             if (dbMaquina != null)
             {
-                dbMaquina.CiclosReales += pHechasTurno;
+                dbMaquina.CiclosReales += piezasHechasTurno;
                 dbMaquina.FechaActualizacion = DateTime.Now;
             }
 
@@ -495,8 +498,8 @@ public class ImputacionService
                 FechaInicio = inicio,
                 FechaFin = fin,
                 Horas = Math.Round(horasTotales, 2),
-                PiezasFabricadas = pHechasTurno, 
-                PiezasRotas = pRotasTurno       
+                PiezasFabricadas = piezasHechasTurno, 
+                PiezasRotas = piezasRotasTurno
             };
 
             _context.ImputacionesOperarios.Add(nuevaImp);
@@ -521,8 +524,8 @@ public class ImputacionService
             if (operacion == null) return false;
 
             operacion.Estado = "Finalizado";
-            operacion.IdMaquina = idMaquina;
-            operacion.IdSeccion = idSeccion;
+            operacion.IdMaquina = (idMaquina == 0) ? null : idMaquina;
+            operacion.IdSeccion = (idSeccion == 0) ? null : idSeccion;
             operacion.FechaFin = DateTime.Now;
             await _context.SaveChangesAsync();
 
@@ -845,7 +848,7 @@ public class ImputacionService
             {
                 //la ponemos en activa
                 operacion.Estado = "Activa";
-                operacion.IdMaquina = idMaquina;
+                operacion.IdMaquina = (idMaquina == 0) ? null : idMaquina;
 
                 var maquina = await _context.Maquinas.FindAsync(idMaquina);
                 if (maquina != null)

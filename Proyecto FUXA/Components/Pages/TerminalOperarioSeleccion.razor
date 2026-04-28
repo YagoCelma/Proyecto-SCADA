@@ -56,12 +56,14 @@
         @* pantalla contraseña *@
         else if (pasoActual == 2)
         {
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" class="rz-mb-4" Style="justify-content: center; position: relative;">
-                <RadzenButton Icon="arrow_back" Click="() => pasoActual = 1" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Style="position: absolute; left: 0;" />
+            <div style="display: grid; grid-template-columns: 50px 1fr 50px; align-items: center; margin-bottom: 2rem;">
+                <RadzenButton Icon="arrow_back" Click="() => pasoActual = 1" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" />
+                
                 <RadzenText TextStyle="TextStyle.H5" class="instruction" Style="margin: 0; border: none; text-align: center;">
                     Introduce tu PIN, @operarioSeleccionado.Nombre
                 </RadzenText>
-            </RadzenStack>
+                
+                <div></div> </div>
 
             <div class="numpad-container">
                 <div class="pin-display">
