@@ -125,7 +125,7 @@ public class ImputacionService
                 IdMaquina = idMaquina,
                 CiclosObjetivo = ciclos,
                 Estado = "Activa",
-                FechaInicio = DateTime.Now
+                FechaInicio = null
             };
 
             _context.OperacionesOrden.Add(nuevaOp);
@@ -182,7 +182,7 @@ public class ImputacionService
             PiezasFabricadas = 0,
             PiezasRotas = 0,
             Estado = "Activa",
-            FechaInicio = DateTime.Now,
+            FechaInicio = null,
             IdSeccion = 1,
             IdOperacionMaestra = 1
         };
@@ -772,6 +772,7 @@ public class ImputacionService
         if (operacion != null)
         {
             operacion.Estado = "Activa";
+            operacion.FechaInicio = DateTime.Now;
 
             var ordenMadre = await _context.Ordenes.FindAsync(operacion.IdOrden);
             if (ordenMadre != null && ordenMadre.Estado == "Pendiente")
@@ -816,7 +817,7 @@ public class ImputacionService
                 IdOperacionMaestra = op.Id,
                 Preferencia = op.Preferencia,
                 Estado = "Pendiente",
-                FechaInicio = DateTime.Now,
+                FechaInicio = null,
                 CodigoOperacion = op.Nombre,
                 CiclosObjetivo = 0,
                 PiezasRotas = 0,
@@ -957,5 +958,79 @@ public class ImputacionService
             .Where(o => o.IdOrden == idOrden)
             .OrderByDescending(o => o.Preferencia)
             .ToListAsync();
+    }
+
+    public async Task IniciarOReanudarFichajeAsync(int idOperacion, int idEmpleado)
+    {
+        var operacion = await _context.OperacionesOrden.FindAsync(idOperacion);
+        if (operacion == null) return;
+
+        if (operacion.FechaInicio == null) operacion.FechaInicio = DateTime.Now;
+
+        operacion.Estado = "Activa";
+
+        if(operacion.IdMaquina != null)
+        {
+            var maquina = await _context.Maquinas.FindAsync(operacion.IdMaquina);
+            if (maquina != null) maquina.EstadoActualId = 1;
+        }
+
+        var nuevaImputacion = new ImputacionOperario
+        {
+            IdOperacion = idOperacion,
+            IdEmpleado = idEmpleado,
+            FechaInicio = DateTime.Now,
+            FechaFin = null,
+            Horas = 0
+        };
+
+        _context.ImputacionesOperarios.Add(nuevaImputacion);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task PausarFichajeAsync(int idOperacion, int idEmpleado)
+    {
+        var imputacion = await _context.ImputacionesOperarios
+            .FirstOrDefaultAsync(i => i.IdOperacion == idOperacion
+                && i.IdEmpleado == idEmpleado && i.FechaFin == null);
+
+        if(imputacion != null)
+        {
+            imputacion.FechaFin = DateTime.Now;
+
+            var tiempoTrabajado = imputacion.FechaFin.Value - imputacion.FechaInicio.Value;
+
+            imputacion.Horas = (decimal)Math.Round(tiempoTrabajado.TotalHours, 4);
+
+            await _context.SaveChangesAsync();
+        } 
+    }
+
+    public async Task FinalizarOperacionAsync(int idOperacion, int idEmpleado)
+    {
+        var imputacion = await _context.ImputacionesOperarios
+            .FirstOrDefaultAsync(i => i.IdOperacion == idOperacion
+            && i.IdEmpleado == idEmpleado && i.FechaFin == null);
+
+        if(imputacion != null)
+        {
+            imputacion.FechaFin = DateTime.Now;
+            var tiempoTrabajado = imputacion.FechaFin.Value - imputacion.FechaInicio.Value;
+            imputacion.Horas = (decimal)Math.Round(tiempoTrabajado.TotalHours, 4);
+        }
+
+        var operacion = await _context.OperacionesOrden.FindAsync(idOperacion);
+        if(operacion != null)
+        {
+            operacion.Estado = "Finalizado";
+            operacion.FechaFin = DateTime.Now;
+
+            if(operacion.IdMaquina != null)
+            {
+                var maquina = await _context.Maquinas.FindAsync(operacion.IdMaquina);
+                if (maquina != null) maquina.EstadoActualId = 3;
+            }
+        }
+        await _context.SaveChangesAsync();
     }
 }

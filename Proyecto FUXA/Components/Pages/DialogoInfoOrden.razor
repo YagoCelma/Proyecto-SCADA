@@ -165,7 +165,10 @@
 
     private List<OperacionesOrden> listaOperaciones = new();
     private List<ImputacionMaterial> listaMateriales = new();
+
     private int porcentajeCompletado = 0;
+    private TimeSpan totalTiempoTeorico = TimeSpan.Zero;
+    private TimeSpan totalTiempoReal = TimeSpan.Zero;
 
     protected override async Task OnInitializedAsync()
     {
@@ -187,5 +190,38 @@
             int finalizadas = listaOperaciones.Count(o => o.Estado == "Finalizado");
             porcentajeCompletado = (int)((decimal)finalizadas / total * 100);
         }
+        // CalcularTiemposTotales();
     }
+
+    // private void CalcularTiemposTotales()
+    // {
+    //     double minutosTeoricosTotales = listaOperaciones
+    //     .Where(op => op.DetalleOperacion != null)
+    //     .Sum(op => op.DetalleOperacion.TiempoTeorico);
+
+    //     totalTiempoTeorico = TimeSpan.FromMinutes(minutosTeoricosTotales);
+
+    //     double horasRealesTotales = 0;
+
+    //     foreach(var operacion in listaOperaciones)
+    //     {
+    //         if(operacion.Imputaciones != null && operacion.Imputaciones.Any())
+    //         {
+    //             horasRealesTotales += operacion.Imputaciones
+    //             .Where(i => i.FechaFin != null)
+    //             .Sum(i => (double)i.Horas);
+
+    //             var tramosActivos = operacion.Imputaciones.Where(i => i.FechaFin == null);
+
+    //             foreach (var activo in tramosActivos)
+    //             {
+    //                 if (activo.FechaInicio.HasValue)
+    //                 {
+    //                     horasRealesTotales += (DateTime.Now - activo.FechaInicio.Value).TotalHours;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     totalTiempoReal = TimeSpan.FromHours(horasRealesTotales);
+    // }
 }
