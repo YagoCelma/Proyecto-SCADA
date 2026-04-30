@@ -124,7 +124,7 @@ public class ImputacionService
                 CodigoOperacion = nuevoCodigo,
                 IdMaquina = idMaquina,
                 CiclosObjetivo = ciclos,
-                Estado = "Activa",
+                Estado = "En curso",
                 FechaInicio = null
             };
 
@@ -181,7 +181,7 @@ public class ImputacionService
             CiclosObjetivo = ciclos,
             PiezasFabricadas = 0,
             PiezasRotas = 0,
-            Estado = "Activa",
+            Estado = "En curso",
             FechaInicio = null,
             IdSeccion = 1,
             IdOperacionMaestra = 1
@@ -202,7 +202,7 @@ public class ImputacionService
         try
         {
             return await _context.Ordenes
-                .Where(o => o.Estado == "Activa")
+                .Where(o => o.Estado == "En curso")
                 .OrderByDescending(o => o.FechaInicio)
                 .ToListAsync();
         }
@@ -223,7 +223,7 @@ public class ImputacionService
             return await _context.OperacionesOrden
                 .Include(o => o.Orden)
                 .Include(o => o.Maquina)
-                .Where(o => (o.Estado == "Activa" || o.Estado == "Pendiente" || o.Estado == "Finalizado") && o.Orden.Estado != "Finalizado")
+                .Where(o => (o.Estado == "En curso" || o.Estado == "Pendiente" || o.Estado == "Finalizado") && o.Orden.Estado != "Finalizado")
                 .Select(o => new OperacionResumenDTO
                 {
                     Id = o.Id,
@@ -771,13 +771,13 @@ public class ImputacionService
 
         if (operacion != null)
         {
-            operacion.Estado = "Activa";
+            operacion.Estado = "En curso";
             operacion.FechaInicio = DateTime.Now;
 
             var ordenMadre = await _context.Ordenes.FindAsync(operacion.IdOrden);
             if (ordenMadre != null && ordenMadre.Estado == "Pendiente")
             {
-                ordenMadre.Estado = "Activa";
+                ordenMadre.Estado = "En curso";
             }
 
             var maquina = await _context.Maquinas.FindAsync(operacion.IdMaquina);
@@ -848,7 +848,7 @@ public class ImputacionService
             if (operacion != null)
             {
                 //la ponemos en activa
-                operacion.Estado = "Activa";
+                operacion.Estado = "En curso";
                 operacion.IdMaquina = (idMaquina == 0) ? null : idMaquina;
 
                 var maquina = await _context.Maquinas.FindAsync(idMaquina);
@@ -860,7 +860,7 @@ public class ImputacionService
                 var ordenMadre = await _context.Ordenes.FindAsync(operacion.IdOrden);
                 if (ordenMadre != null && ordenMadre.Estado == "Pendiente")
                 {
-                    ordenMadre.Estado = "Activa";
+                    ordenMadre.Estado = "En curso";
                 }
 
                 await _context.SaveChangesAsync();
@@ -881,7 +881,7 @@ public class ImputacionService
         try
         {
             var operacion = await _context.OperacionesOrden.FindAsync(idOperacion);
-            if (operacion != null && operacion.Estado == "Activa")
+            if (operacion != null && operacion.Estado == "En curso")
             {
                 operacion.IdMaquina = null;
             }
@@ -955,6 +955,7 @@ public class ImputacionService
     {
         return await _context.OperacionesOrden
             .Include(o => o.DetalleOperacion)
+            .Include( o => o.Imputaciones)
             .Where(o => o.IdOrden == idOrden)
             .OrderByDescending(o => o.Preferencia)
             .ToListAsync();
@@ -962,14 +963,26 @@ public class ImputacionService
 
     public async Task IniciarOReanudarFichajeAsync(int idOperacion, int idEmpleado)
     {
-        var operacion = await _context.OperacionesOrden.FindAsync(idOperacion);
+        var operacion = await _context.OperacionesOrden
+            .Include(o => o.Orden)
+            .FirstOrDefaultAsync(o => o.Id == idOperacion);
+
         if (operacion == null) return;
 
         if (operacion.FechaInicio == null) operacion.FechaInicio = DateTime.Now;
 
-        operacion.Estado = "Activa";
+        operacion.Estado = "En curso";
 
-        if(operacion.IdMaquina != null)
+        if (operacion.Orden != null && operacion.Orden.Estado == "Pendiente")
+        {
+            operacion.Orden.Estado = "En curso";
+            if (operacion.Orden.FechaInicio == null)
+            {
+                operacion.Orden.FechaInicio = DateTime.Now;
+            }
+        }
+
+        if (operacion.IdMaquina != null)
         {
             var maquina = await _context.Maquinas.FindAsync(operacion.IdMaquina);
             if (maquina != null) maquina.EstadoActualId = 1;
@@ -1032,5 +1045,54 @@ public class ImputacionService
             }
         }
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<Orden>> ObtenerOrdenesConProgresoAsync()
+    {
+        var ordenes = await _context.Ordenes
+            .Include(o => o.Operaciones)
+                .ThenInclude(op => op.DetalleOperacion) //tiempos reales
+            .Include(o => o.Operaciones)
+                .ThenInclude(op => op.Imputaciones) //tiempos teoricos
+            .ToListAsync();
+
+        foreach(var orden in ordenes)
+        {
+            double tiempoTeoricoTotal = orden.Operaciones
+                .Where(op => op.DetalleOperacion != null)
+                .Sum(op => op.DetalleOperacion.TiempoTeorico);
+
+            double horasRealesTotales = 0;
+
+            foreach(var op in orden.Operaciones)
+            {
+                if(op.Imputaciones != null)
+                {
+                    //tramos ya cerrados
+                    horasRealesTotales += op.Imputaciones
+                        .Where(i => i.FechaFin != null && i.FechaInicio != null)
+                        .Sum(i => (i.FechaFin.Value - i.FechaInicio.Value).TotalHours);
+
+                    var activos = op.Imputaciones.Where(i => i.FechaFin == null && i.FechaInicio != null);
+                    foreach(var activo in activos)
+                    {
+                        horasRealesTotales += (DateTime.Now - activo.FechaInicio.Value).TotalHours;
+                    }
+                }
+            }
+
+            if(tiempoTeoricoTotal > 0)
+            {
+                double tiempoTeoricoHoras = tiempoTeoricoTotal / 60;
+                double porcentaje = (horasRealesTotales / tiempoTeoricoHoras) * 100;
+
+                orden.PorcentajeTiempoTotal = (int)Math.Min(porcentaje, 100);
+            }
+            else
+            {
+                orden.PorcentajeTiempoTotal = 0;
+            }
+        }
+        return ordenes;
     }
 }

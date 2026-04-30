@@ -61,9 +61,9 @@
                         </FilterTemplate>
 
                         <Template Context="o">
-                            @if (o.Estado.Equals("Activa"))
+                            @if (o.Estado.Equals("En curso"))
                             {
-                                <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="ACTIVA" class="ent-badge" />
+                                <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="EN CURSO" class="ent-badge" />
                             }
                             else if (o.Estado.Equals("Pendiente"))
                             {
@@ -231,7 +231,7 @@
 
     string textoBusqueda = "";
     string estadoSeleccionado = "TODOS";
-    List<string> opcionesEstado = new List<string> { "TODOS", "Pendiente", "Activa", "Finalizado" };
+    List<string> opcionesEstado = new List<string> { "TODOS", "Pendiente", "En curso", "Finalizado" };
 
     protected override async Task OnInitializedAsync()
     {
@@ -244,7 +244,7 @@
 
         listaCompleta = datos.OrderBy(o => o.Estado switch
         {
-            "Activa" => 1,
+            "En curso" => 1,
             "Finalizado" => 2,
             "Pendiente" => 3,
             _ => 4

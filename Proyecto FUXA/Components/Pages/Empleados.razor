@@ -31,7 +31,7 @@
             </RadzenColumn>
         </RadzenRow>
 
-        @* TABLA (GRID) *@
+        @* tabla *@
         <div class="ent-grid-wrapper">
             <RadzenDataGrid @ref="empleadosGrid" Data="@empleados" TItem="Empleado"
                             RowUpdate="@GuardarFila" RowCreate="@GuardarFila"
@@ -76,6 +76,11 @@
                         </EditTemplate>
                     </RadzenDataGridColumn>
 
+                    <RadzenDataGridColumn TItem="Empleado" Property="CodigoEmpleado" Title="CODIGO EMPLEADO" >
+                        <Template Context="e">
+                            <strong>@e.CodigoEmpleado</strong>
+                        </Template>
+                    </RadzenDataGridColumn>
                     @* gestionar maquinas *@
                     @* <RadzenDataGridColumn TItem="Empleado" Title="MÁQUINAS" Width="120px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="emp">
@@ -118,7 +123,7 @@
 </div>
 
 <style>
-    /* Fondo general */
+    /* fondo */
     .fuxa-enterprise-container {
         background-color: #FAFAFA;
         min-height: 100vh;
@@ -126,7 +131,7 @@
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    /* Títulos */
+    /* titulos */
     .ent-title {
         color: #1A2E3F;
         font-weight: 800 !important;
@@ -142,23 +147,19 @@
         margin-top: 5px;
     }
 
-    /* Contenedor de la tabla con borde estricto */
     .ent-grid-wrapper {
         border: 1px solid #D5E3EF;
         background: white;
         border-radius: 4px;
         overflow: hidden;
-        /* Le damos una altura mínima para que encaje bien en pantalla grande */
         min-height: 600px;
     }
 
-    /* ---- ESTILOS DE LA TABLA (DATAGRID) ---- */
     .ent-datagrid {
         border: none !important;
         height: 100% !important;
     }
 
-        /* Cabecera oscura corporativa */
         .ent-datagrid .rz-datagrid-header-cell {
             background-color: #1A2E3F !important;
             color: #FFFFFF !important;
@@ -170,12 +171,10 @@
             text-transform: uppercase;
         }
 
-            /* Iconos de ordenación en la cabecera */
             .ent-datagrid .rz-datagrid-header-cell .rz-sortable-column-icon {
                 color: #7BB3D4 !important;
             }
 
-        /* Filas de la tabla */
         .ent-datagrid .rz-datagrid-row td {
             border-bottom: 1px solid #EEEEEE !important;
             padding: 12px 15px !important;
@@ -183,22 +182,18 @@
             font-size: 0.95rem;
         }
 
-        /* Filas alternas (Zebra stripes) para leer mejor los datos */
         .ent-datagrid .rz-datagrid-row:nth-child(even) > td {
             background-color: #F8F9FA !important;
         }
 
-        /* Efecto hover al pasar el ratón */
         .ent-datagrid .rz-datagrid-row:hover td {
             background-color: #E6F2FF !important;
         }
 
-        /* Evitar el hover azul cuando se está editando una fila */
         .ent-datagrid .rz-datagrid-row.rz-state-highlight td {
-            background-color: #FFFDE7 !important; /* Fondo amarillento muy suave para indicar edición */
+            background-color: #FFFDE7 !important; 
         }
 
-    /* ---- ETIQUETAS, INPUTS Y BOTONES ---- */
     .ent-badge {
         border-radius: 4px !important;
         padding: 6px 12px !important;
@@ -207,7 +202,6 @@
         font-size: 0.8rem;
     }
 
-    /* Inputs de edición */
     .ent-input {
         border-radius: 4px !important;
         border: 1px solid #CBD5E1 !important;
@@ -221,7 +215,6 @@
             outline: none;
         }
 
-    /* Botones superiores */
     .ent-btn-solid {
         background-color: #1F4E79 !important;
         border-radius: 4px !important;
@@ -233,7 +226,6 @@
             background-color: #163857 !important;
         }
 
-    /* Botones de acción de la tabla */
     .ent-action-btn {
         color: #1F4E79 !important;
         background: transparent !important;

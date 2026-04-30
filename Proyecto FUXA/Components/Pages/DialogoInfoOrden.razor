@@ -23,8 +23,8 @@
                     </RadzenStack>
                 </RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="4" Style="text-align: right;">
-                    <RadzenBadge BadgeStyle="@(OrdenInfo.Estado == "Activa" ? BadgeStyle.Success :
-                                                                                                    OrdenInfo.Estado == "Finalizado" ? BadgeStyle.Danger : BadgeStyle.Info)"
+                    <RadzenBadge BadgeStyle="@(OrdenInfo.Estado == "En curso" ? BadgeStyle.Success :
+                                             OrdenInfo.Estado == "Finalizado" ? BadgeStyle.Danger : BadgeStyle.Info)"
                                  Text="@OrdenInfo.Estado.ToUpper()"
                                  Style="padding: 10px 20px; font-size: 1rem;" />
                 </RadzenColumn>
@@ -48,13 +48,20 @@
                     <RadzenDataGrid Data="@listaOperaciones" TItem="OperacionesOrden" class="rz-mt-2" AllowPaging="true" PageSize="6">
                         <Columns>
                             <RadzenDataGridColumn TItem="OperacionesOrden" Property="Preferencia" Title="Preferencia" Width="100px" TextAlign="TextAlign.Center" />
-                            <RadzenDataGridColumn TItem="OperacionesOrden" Property="CodigoOperacion" Title="Operación" />
+                            
+                            <RadzenDataGridColumn TItem="OperacionesOrden" Property="CodigoOperacion" Title="Operación">
+                                <FooterTemplate>
+                                    <div style="text-align: right; font-weight: bold; color: #1A2E3F;">TOTALES:</div>
+                                </FooterTemplate>
+                            </RadzenDataGridColumn>
+
                             <RadzenDataGridColumn TItem="OperacionesOrden" Property="Estado" Title="Estado" Width="130px" TextAlign="TextAlign.Center">
                                 <Template Context="op">
-                                    <RadzenBadge BadgeStyle="@(op.Estado == "Activa" ? BadgeStyle.Success : op.Estado == "Finalizado" ? BadgeStyle.Danger : BadgeStyle.Info)"
+                                    <RadzenBadge BadgeStyle="@(op.Estado == "En curso" ? BadgeStyle.Success : op.Estado == "Finalizado" ? BadgeStyle.Danger : BadgeStyle.Info)"
                                                  Text="@op.Estado" IsPill="true" />
                                 </Template>
                             </RadzenDataGridColumn>
+                            
                             @* tiempo teorico *@
                             <RadzenDataGridColumn TItem="OperacionesOrden" Title="Tiempo teórico" Width="130px" TextAlign="TextAlign.Center">
                                 <Template Context="op">
@@ -72,23 +79,31 @@
                                         <span style="color: #A0AEC0;">---</span>
                                     }
                                 </Template>
+                                <FooterTemplate>
+                                    <span style="font-weight: bold; color: #475569;">
+                                        @((int)tiempoTotalTeorico.TotalHours)h @tiempoTotalTeorico.Minutes.ToString("D2")m
+                                    </span>
+                                </FooterTemplate>
                             </RadzenDataGridColumn>
 
                             @* tiempo real *@
                             <RadzenDataGridColumn TItem="OperacionesOrden" Title="Tiempo real" Width="140px" TextAlign="TextAlign.Center">
                                 <Template Context="op">
-                                    @if (op.FechaFin.HasValue && op.FechaInicio.HasValue)
-                                    {
-                                        var tiempoReal = op.FechaFin.Value - op.FechaInicio.Value;
-                                        <span style="font-weight: bold; color: #1F4E79;">
-                                            @((int)tiempoReal.TotalHours)h @tiempoReal.Minutes.ToString("D2")m
-                                        </span>
+                                    @{
+                                        double horasFila = 0;
+                                        if (op.Imputaciones != null)
+                                        {
+                                            horasFila += op.Imputaciones.Where(i => i.FechaFin != null).Sum(i => (double)i.Horas);
+                                            var activo = op.Imputaciones.FirstOrDefault(i => i.FechaFin == null);
+                                            if (activo != null && activo.FechaInicio.HasValue)
+                                                horasFila += (DateTime.Now - activo.FechaInicio.Value).TotalHours;
+                                        }
+                                        var tr = TimeSpan.FromHours(horasFila);
                                     }
-                                    else if (op.Estado == "Activa" && op.FechaInicio.HasValue)
+                                    @if (horasFila > 0)
                                     {
-                                        var tiempoParcial = DateTime.Now - op.FechaInicio.Value;
-                                        <span style="color: #00CC58; font-weight: bold;">
-                                            @((int)tiempoParcial.TotalHours)h @tiempoParcial.Minutes.ToString("D2")m
+                                        <span style="font-weight: bold; color: @(op.Estado == "En curso" ? "#00CC58" : "#1F4E79");">
+                                            @((int)tr.TotalHours)h @tr.Minutes.ToString("D2")m
                                         </span>
                                     }
                                     else
@@ -96,6 +111,11 @@
                                         <span style="color: #A0AEC0;">---</span>
                                     }
                                 </Template>
+                                <FooterTemplate>
+                                    <span style="font-weight: bold; color: #1F4E79; font-size: 1.1rem;">
+                                        @((int)tiempoTotalReal.TotalHours)h @tiempoTotalReal.Minutes.ToString("D2")m
+                                    </span>
+                                </FooterTemplate>
                             </RadzenDataGridColumn>
                         </Columns>
                     </RadzenDataGrid>
@@ -124,18 +144,30 @@
                 @* pestaña tiempos totales *@
                 <RadzenTabsItem Text="Tiempos" Icon="timer">
                     <div class="rz-p-4">
-                        <RadzenRow>
-                            <RadzenColumn Size="6">
-                                <RadzenStack Gap="0.5rem">
-                                    <RadzenText TextStyle="TextStyle.Subtitle2">Fecha Inicio:</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1"><b>@OrdenInfo.FechaInicio.ToString("dd/MM/yyyy HH:mm")</b></RadzenText>
-                                </RadzenStack>
+                        <RadzenRow class="rz-mb-4">
+                            <RadzenColumn Size="12" SizeMD="6">
+                                <RadzenCard Style="background: #F8FAFC; border-left: 4px solid #17a2b8;">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" Style="color: #64748B;">
+                                        TIEMPO TOTAL TEÓRICO
+                                    </RadzenText>
+                                    <RadzenText TextStyle="TextStyle.H4" Style="margin: 0; font-weight: bold; color: #334155;">
+                                        @((int)tiempoTotalTeorico.TotalHours)h @tiempoTotalTeorico.Minutes.ToString("D2")m
+                                    </RadzenText>
+                                </RadzenCard>
                             </RadzenColumn>
-                            <RadzenColumn Size="6">
-                                <RadzenStack Gap="0.5rem">
-                                    <RadzenText TextStyle="TextStyle.Subtitle2">Fecha Fin Estimada/Real:</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1"><b>@(OrdenInfo.FechaFin?.ToString("dd/MM/yyyy HH:mm") ?? "En curso...")</b></RadzenText>
-                                </RadzenStack>
+
+                            <RadzenColumn Size="12" SizeMD="6">
+                                @{
+                                    string colorReal = tiempoTotalReal > tiempoTotalTeorico ? "#EF4444" : "#10B981";
+                                }
+                                <RadzenCard Style="@($"background: #F8FAFC; border-left: 4px solid {colorReal};")">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" Style="color: #64748B;">
+                                        TIEMPO TOTAL REAL TRABAJADO
+                                    </RadzenText>
+                                    <RadzenText TextStyle="TextStyle.H4" Style="@($"margin: 0; font-weight: bold; color: {colorReal};")">
+                                        @((int)tiempoTotalReal.TotalHours)h @tiempoTotalReal.Minutes.ToString("D2")m
+                                    </RadzenText>
+                                </RadzenCard>
                             </RadzenColumn>
                         </RadzenRow>
                     </div>
@@ -167,8 +199,8 @@
     private List<ImputacionMaterial> listaMateriales = new();
 
     private int porcentajeCompletado = 0;
-    private TimeSpan totalTiempoTeorico = TimeSpan.Zero;
-    private TimeSpan totalTiempoReal = TimeSpan.Zero;
+    private TimeSpan tiempoTotalTeorico = TimeSpan.Zero;
+    private TimeSpan tiempoTotalReal = TimeSpan.Zero;
 
     protected override async Task OnInitializedAsync()
     {
@@ -184,44 +216,45 @@
 
         listaMateriales = await ImputacionService.ObtenerMaterialesPorOrdenAsync(OrdenInfo.Id);
 
+        CalcularTiemposTotales();
+
         if (listaOperaciones.Any())
         {
-            int total = listaOperaciones.Count;
-            int finalizadas = listaOperaciones.Count(o => o.Estado == "Finalizado");
-            porcentajeCompletado = (int)((decimal)finalizadas / total * 100);
+            TimeSpan totalReales = tiempoTotalReal;
+            TimeSpan totalTeorico = tiempoTotalTeorico;
+            porcentajeCompletado = (int)((TimeSpan)totalReales / totalTeorico * 100);
         }
-        // CalcularTiemposTotales();
     }
 
-    // private void CalcularTiemposTotales()
-    // {
-    //     double minutosTeoricosTotales = listaOperaciones
-    //     .Where(op => op.DetalleOperacion != null)
-    //     .Sum(op => op.DetalleOperacion.TiempoTeorico);
+    private void CalcularTiemposTotales()
+    {
+        double minutosTeoricosTotales = listaOperaciones
+        .Where(op => op.DetalleOperacion != null)
+        .Sum(op => op.DetalleOperacion.TiempoTeorico);
 
-    //     totalTiempoTeorico = TimeSpan.FromMinutes(minutosTeoricosTotales);
+        tiempoTotalTeorico = TimeSpan.FromMinutes(minutosTeoricosTotales);
 
-    //     double horasRealesTotales = 0;
+        double horasRealesTotales = 0;
 
-    //     foreach(var operacion in listaOperaciones)
-    //     {
-    //         if(operacion.Imputaciones != null && operacion.Imputaciones.Any())
-    //         {
-    //             horasRealesTotales += operacion.Imputaciones
-    //             .Where(i => i.FechaFin != null)
-    //             .Sum(i => (double)i.Horas);
+        foreach(var operacion in listaOperaciones)
+        {
+            if(operacion.Imputaciones != null && operacion.Imputaciones.Any())
+            {
+                horasRealesTotales += operacion.Imputaciones
+                .Where(i => i.FechaFin != null && i.FechaInicio != null)
+                .Sum(i => (i.FechaFin.Value - i.FechaInicio.Value).TotalHours);
 
-    //             var tramosActivos = operacion.Imputaciones.Where(i => i.FechaFin == null);
+                var tramosActivos = operacion.Imputaciones.Where(i => i.FechaFin == null);
 
-    //             foreach (var activo in tramosActivos)
-    //             {
-    //                 if (activo.FechaInicio.HasValue)
-    //                 {
-    //                     horasRealesTotales += (DateTime.Now - activo.FechaInicio.Value).TotalHours;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     totalTiempoReal = TimeSpan.FromHours(horasRealesTotales);
-    // }
+                foreach (var activo in tramosActivos)
+                {
+                    if (activo.FechaInicio.HasValue)
+                    {
+                        horasRealesTotales += (DateTime.Now - activo.FechaInicio.Value).TotalHours;
+                    }
+                }
+            }
+        }
+        tiempoTotalReal = TimeSpan.FromHours(horasRealesTotales);
+    }
 }

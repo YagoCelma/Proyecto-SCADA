@@ -17,5 +17,10 @@ namespace Proyecto_FUXA.Models
         public DateTime? FechaFin { get; set; }
         public string Estado { get; set; } = "Pendiente";
 
+        [NotMapped]
+        public int PorcentajeTiempoTotal { get; set; }
+
+        public virtual ICollection<OperacionesOrden> Operaciones { get; set; } = new List<OperacionesOrden>();
+
     }
 }

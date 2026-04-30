@@ -29,7 +29,7 @@ namespace Proyecto_FUXA.Models
 
         [ForeignKey("IdOperacionMaestra")]
         public virtual TipoOperacion? DetalleOperacion { get; set; }
-        //[ForeignKey("IdOperacion")]
-        //public virtual ICollection<ImputacionOperario> Imputaciones { get; set; } = new List<ImputacionOperario>();
+        [InverseProperty("Operacion")]
+        public virtual ICollection<ImputacionOperario> Imputaciones { get; set; } = new List<ImputacionOperario>();
     }
 }

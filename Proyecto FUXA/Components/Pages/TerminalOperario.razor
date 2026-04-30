@@ -85,10 +85,10 @@
 
                         if (tareasRestantes == 0) continue;
 
-                        string estadoOrden = ordenesDisponibles.Where(o => o.NombreOrden == grupo.Key.NombreOrden).Any(o => o.Estado == "Activa" || o.Estado == "Finalizado") ? "Activa" : "Pendiente";
+                        string estadoOrden = ordenesDisponibles.Where(o => o.NombreOrden == grupo.Key.NombreOrden).Any(o => o.Estado == "En curso" || o.Estado == "Finalizado") ? "En curso" : "Pendiente";
                         
-                        var estiloBadge = estadoOrden == "Activa" ? BadgeStyle.Success : BadgeStyle.Info;
-                        string colorBorde = estadoOrden == "Activa" ? "#28a745" : "#17a2b8";
+                        var estiloBadge = estadoOrden == "En curso" ? BadgeStyle.Success : BadgeStyle.Info;
+                        string colorBorde = estadoOrden == "En curso" ? "#28a745" : "#17a2b8";
 
                         <RadzenCard @onclick="() => SeleccionarOrdenPadre(grupo.Key.NombreOrden)" class="order-card-modern" Style="@($"border-left: 8px solid {colorBorde};")">
                             <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
@@ -140,7 +140,7 @@
                     
                     string estadoActual = ordenReal != null ? ordenReal.Estado : "Pendiente";
                     
-                    string borde = estadoActual == "Activa" ? "border-left: 8px solid #28a745;" :
+                    string borde = estadoActual == "En curso" ? "border-left: 8px solid #28a745;" :
                            estadoActual == "Finalizado" ? "border-left: 8px solid #6c757d; opacity: 0.5; pointer-events: none; background-color: #f8f9fa;" :
                            "border-left: 8px solid #17a2b8;";
 
@@ -157,9 +157,9 @@
 
                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="2rem">
                                 <div class="status-badge-container">
-                                    @if (estadoActual == "Activa")
+                                    @if (estadoActual == "En curso")
                                     {
-                                        <RadzenBadge BadgeStyle="BadgeStyle.Success" class="badge-xl" Text="ACTIVA" />
+                                        <RadzenBadge BadgeStyle="BadgeStyle.Success" class="badge-xl" Text="EN CURSO" />
                                     }
                                     else if (estadoActual == "Finalizado")
                                     {
@@ -170,8 +170,8 @@
                                         <RadzenBadge BadgeStyle="BadgeStyle.Info" class="badge-xl" Text="PENDIENTE" />
                                     }
                                 </div>
-                                <RadzenIcon Icon="@(estadoActual == "Finalizado" ? "check_circle" : estadoActual == "Activa" ? "play_circle" : "schedule")"
-                                    Style="@($"font-size: 3.5rem; color: {(estadoActual == "Finalizado" ? "#6c757d" : estadoActual == "Activa" ? "#28a745" : "#17a2b8")};")" />
+                                <RadzenIcon Icon="@(estadoActual == "Finalizado" ? "check_circle" : estadoActual == "En curso" ? "play_circle" : "schedule")"
+                                    Style="@($"font-size: 3.5rem; color: {(estadoActual == "Finalizado" ? "#6c757d" : estadoActual == "En curso" ? "#28a745" : "#17a2b8")};")" />
                             </RadzenStack>
                         </RadzenStack>
                     </RadzenCard>
@@ -429,7 +429,7 @@
         estaPausado = false;
         horaInicioProceso = DateTime.Now;
 
-        if (orden.Estado == "Pendiente" || orden.Estado == "Activa")
+        if (orden.Estado == "Pendiente" || orden.Estado == "En curso")
         {
             await ImputacionService.IniciarOReanudarFichajeAsync(orden.Id, operarioSeleccionado.Id);
         }

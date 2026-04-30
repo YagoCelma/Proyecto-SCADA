@@ -101,6 +101,11 @@ namespace Proyecto_FUXA.Data
                 .WithMany()
                 .HasForeignKey(tm => tm.IdMaterial)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ImputacionOperario>()
+                .HasOne(i => i.Operacion)
+                .WithMany(o => o.Imputaciones)
+                .HasForeignKey(i => i.IdOperacion);
         }
     }
 }

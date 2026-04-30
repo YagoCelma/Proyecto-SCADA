@@ -60,11 +60,20 @@
                             </a>
                         </Template>
                     </RadzenDataGridColumn>
-                        
+                    @* producto *@
                     <RadzenDataGridColumn TItem="Orden" Property="Producto" Title="PRODUCTO / DESCRIPCIÓN" />
-                    
+
+                    @* porcentaje eficiencia *@
+                    <RadzenDataGridColumn TItem="Orden" Property="PorcentajeTiempoTotal" Title="Eficiencia" Width="250px">
+                        <Template Context="o">
+                            <RadzenStack Gap="0.2rem">
+                                <RadzenProgressBar Value="@o.PorcentajeTiempoTotal" ProgressBarStyle="ProgressBarStyle.Primary" />
+                            </RadzenStack>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    @* fecha inicio *@
                     <RadzenDataGridColumn TItem="Orden" Property="FechaInicio" Title="FECHA INICIO" FormatString="{0:dd/MM/yyyy HH:mm}" Width="160px" />
-                    
+                    @* fecha fin *@
                     <RadzenDataGridColumn TItem="Orden" Property="FechaFin" Title="FECHA FIN" FormatString="{0:dd/MM/yyyy HH:mm}" Width="160px">
                         <Template Context="o">
                             @(o.FechaFin.HasValue ? o.FechaFin.Value.ToString("dd/MM/yyyy HH:mm") : "--")
@@ -79,7 +88,7 @@
                                             class="ent-input w-100" />
                         </FilterTemplate>
                         <Template Context="o">
-                            <RadzenBadge BadgeStyle="@(o.Estado == "Activa" ? BadgeStyle.Success :
+                            <RadzenBadge BadgeStyle="@(o.Estado == "En curso" ? BadgeStyle.Success :
                                                        o.Estado == "Finalizado" ? BadgeStyle.Danger :
                                                        BadgeStyle.Info)"
                                          Text="@o.Estado.ToUpper()"
@@ -236,7 +245,7 @@
 
     string filtroTexto = "";
     string filtroEstado = "TODOS";
-    List<string> opcionesEstado = new List<string> { "TODOS", "Activa", "Finalizado", "Pendiente" };
+    List<string> opcionesEstado = new List<string> { "TODOS", "En curso", "Finalizado", "Pendiente" };
 
     protected override async Task OnInitializedAsync()
     {
@@ -245,7 +254,7 @@
 
     private async Task CargarOrdenes()
     {
-        var datos = await ImputacionService.ObtenerOrdenesAsync();
+        var datos = await ImputacionService.ObtenerOrdenesConProgresoAsync();
         almacenOrdenes = datos.ToList();
         AplicarFiltros();
     }
@@ -297,7 +306,7 @@
         }
         resultadoTemporal = resultadoTemporal.OrderBy(orden => orden.Estado switch
         {
-            "Activa" => 1,
+            "En curso" => 1,
             "Pendiente" => 2,
             "Finalizado" => 3,
             _ => 4
@@ -316,7 +325,7 @@
         await DialogService.OpenAsync<DialogoInfoOrden>(
             $"Detalles de Orden: {orden.CodigoOrden}",
             parametros,
-            new DialogOptions() { Width = "750px", Height = "700px", Resizable = true, Draggable = true }
+            new DialogOptions() { Width = "750px", Height = "750px", Resizable = true, Draggable = true }
         );
     }
 }
