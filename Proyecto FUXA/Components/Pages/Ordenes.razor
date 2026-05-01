@@ -64,13 +64,14 @@
                     <RadzenDataGridColumn TItem="Orden" Property="Producto" Title="PRODUCTO / DESCRIPCIÓN" />
 
                     @* porcentaje eficiencia *@
-                    <RadzenDataGridColumn TItem="Orden" Property="PorcentajeTiempoTotal" Title="Eficiencia" Width="250px">
+                    <RadzenDataGridColumn TItem="Orden" Property="PorcentajeTiempoTotal" Title="EFICIENCIA" Width="250px">
                         <Template Context="o">
                             <RadzenStack Gap="0.2rem">
                                 <RadzenProgressBar Value="@o.PorcentajeTiempoTotal" ProgressBarStyle="ProgressBarStyle.Primary" />
                             </RadzenStack>
                         </Template>
                     </RadzenDataGridColumn>
+
                     @* fecha inicio *@
                     <RadzenDataGridColumn TItem="Orden" Property="FechaInicio" Title="FECHA INICIO" FormatString="{0:dd/MM/yyyy HH:mm}" Width="160px" />
                     @* fecha fin *@

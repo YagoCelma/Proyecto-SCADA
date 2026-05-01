@@ -31,15 +31,6 @@
             </RadzenRow>
         </RadzenCard>
 
-        @* barra progreso *@
-        <div class="rz-mb-6">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <RadzenText TextStyle="TextStyle.Subtitle2" Style="font-weight: bold; color: #475569;">PROGRESO DE FABRICACIÓN</RadzenText>
-                <RadzenText TextStyle="TextStyle.Subtitle2" Style="font-weight: bold; color: #1F4E79;">@porcentajeCompletado%</RadzenText>
-            </div>
-            <RadzenProgressBar Value="@porcentajeCompletado" ShowValue="false" Style="height: 12px;" ProgressBarStyle="ProgressBarStyle.Primary" />
-        </div>
-
         @* razdenTable *@
         <RadzenTabs RenderMode="TabRenderMode.Client">
             <Tabs>
@@ -122,7 +113,7 @@
                 </RadzenTabsItem>
 
                 @* pestaña materiales *@
-                <RadzenTabsItem Text="Materiales Consumidos" Icon="inventory_2">
+                <RadzenTabsItem Text="Materiales consumidos" Icon="inventory_2">
                     <RadzenDataGrid Data="@listaMateriales" TItem="ImputacionMaterial" class="rz-mt-2" AllowPaging="true" PageSize="6">
                         <Columns>
                             <RadzenDataGridColumn TItem="ImputacionMaterial" Property="Material.Nombre" Title="Material" />
@@ -142,36 +133,13 @@
                 </RadzenTabsItem>
 
                 @* pestaña tiempos totales *@
-                <RadzenTabsItem Text="Tiempos" Icon="timer">
-                    <div class="rz-p-4">
-                        <RadzenRow class="rz-mb-4">
-                            <RadzenColumn Size="12" SizeMD="6">
-                                <RadzenCard Style="background: #F8FAFC; border-left: 4px solid #17a2b8;">
-                                    <RadzenText TextStyle="TextStyle.Subtitle2" Style="color: #64748B;">
-                                        TIEMPO TOTAL TEÓRICO
-                                    </RadzenText>
-                                    <RadzenText TextStyle="TextStyle.H4" Style="margin: 0; font-weight: bold; color: #334155;">
-                                        @((int)tiempoTotalTeorico.TotalHours)h @tiempoTotalTeorico.Minutes.ToString("D2")m
-                                    </RadzenText>
-                                </RadzenCard>
-                            </RadzenColumn>
-
-                            <RadzenColumn Size="12" SizeMD="6">
-                                @{
-                                    string colorReal = tiempoTotalReal > tiempoTotalTeorico ? "#EF4444" : "#10B981";
-                                }
-                                <RadzenCard Style="@($"background: #F8FAFC; border-left: 4px solid {colorReal};")">
-                                    <RadzenText TextStyle="TextStyle.Subtitle2" Style="color: #64748B;">
-                                        TIEMPO TOTAL REAL TRABAJADO
-                                    </RadzenText>
-                                    <RadzenText TextStyle="TextStyle.H4" Style="@($"margin: 0; font-weight: bold; color: {colorReal};")">
-                                        @((int)tiempoTotalReal.TotalHours)h @tiempoTotalReal.Minutes.ToString("D2")m
-                                    </RadzenText>
-                                </RadzenCard>
-                            </RadzenColumn>
-                        </RadzenRow>
-                    </div>
-                </RadzenTabsItem>
+                @* <RadzenTabsItem Text="Operarios" Icon="timer">
+                    <RadzenDataGrid Data="@listaOperarios" TItem="ImputacionOperario" class="rz-mt-2" AllowPaging="true" PageSize="6">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="ImputacionOperario" Title="Operario"/>
+                        </Columns>
+                    </RadzenDataGrid>
+                </RadzenTabsItem> *@
             </Tabs>
         </RadzenTabs>
     }
@@ -197,6 +165,7 @@
 
     private List<OperacionesOrden> listaOperaciones = new();
     private List<ImputacionMaterial> listaMateriales = new();
+    private List<ImputacionOperario> listaOperarios = new();
 
     private int porcentajeCompletado = 0;
     private TimeSpan tiempoTotalTeorico = TimeSpan.Zero;
@@ -215,6 +184,8 @@
         listaOperaciones = await ImputacionService.ObtenerOperacionesOrdenAsync(OrdenInfo.Id);
 
         listaMateriales = await ImputacionService.ObtenerMaterialesPorOrdenAsync(OrdenInfo.Id);
+
+        //listaOperarios = await ImputacionService.ObtenerOperariosPorOrdenAsync(OrdenInfo.Id);
 
         CalcularTiemposTotales();
 
